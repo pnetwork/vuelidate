@@ -72,6 +72,26 @@ const validationGetters = {
       this.ruleKeys.some((rule) => !proxy[rule])
     )
   },
+  $validated() {
+    if (this.validated) {
+      return true
+    }
+    if (this.nestedKeys.length === 0) {
+      return false
+    }
+
+    return this.nestedKeys.every((key) => this.refProxy(key).$validated)
+  },
+  $anyValidated() {
+    if (this.validated) {
+      return true
+    }
+    if (this.nestedKeys.length === 0) {
+      return false
+    }
+
+    return this.nestedKeys.some((key) => this.refProxy(key).$anyValidated)
+  },
   $dirty() {
     if (this.dirty) {
       return true
@@ -100,6 +120,14 @@ const validationGetters = {
 
     return this.nestedKeys.some((key) => this.refProxy(key).$anyError)
   },
+  $validatedError() {
+    return this.$validated && this.$dirty && !this.$pending && this.$invalid
+  },
+  $anyValidatedError() {
+    if (this.$validatedError) return true
+
+    return this.nestedKeys.some((key) => this.refProxy(key).$validatedError)
+  },
   $pending() {
     return (
       this.ruleKeys.some((key) => this.getRef(key).$pending) ||
@@ -127,12 +155,26 @@ function setDirtyRecursive(newState) {
   })
 }
 
+function setValidatedRecursive(newState) {
+  this.validated = newState
+  const proxy = this.proxy
+  const method = newState ? '$validate' : '$reset'
+  this.nestedKeys.forEach((key) => {
+    proxy[key][method]()
+  })
+}
+
 const validationMethods = {
+  $validate() {
+    setValidatedRecursive.call(this, true)
+    setDirtyRecursive.call(this, true)
+  },
   $touch() {
     setDirtyRecursive.call(this, true)
   },
   $reset() {
     setDirtyRecursive.call(this, false)
+    setValidatedRecursive.call(this, false)
   },
   $flattenParams() {
     const proxy = this.proxy
@@ -303,6 +345,7 @@ const getComponent = (Vue) => {
   const Validation = VBase.extend({
     data() {
       return {
+        validated: false,
         dirty: false,
         validations: null,
         lazyModel: null,

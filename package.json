@@ -1,10 +1,10 @@
 {
-  "name": "vuelidate",
+  "name": "@pentium/vuelidate",
   "sideEffects": [
     "*.sass",
     "*.scss"
   ],
-  "version": "0.7.4",
+  "version": "0.0.1",
   "description": "Simple, lightweight model-based validation for Vue.js",
   "author": "Paweł Grabarz <pawel.grabarz@monterail.com>",
   "license": "MIT",
@@ -88,5 +88,8 @@
     "node": ">= 4.0.0",
     "npm": ">= 3.0.0"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "publishConfig": {
+    "registry": "https://package.pentium.network/repository/npm-hosted/"
+  }
 }
